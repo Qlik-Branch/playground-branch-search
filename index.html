@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Playground Basic Example</title>
+    <link rel="stylesheet" href="/resources/sense-search.min.css"/>
+  </head>
+  <body>
+    <h1>Playground Branch Search Example</h1>
+    <sense-search-input id="myInput" mode="simple"></sense-search-input>
+    <sense-search-results id="myResults"></sense-search-results>
+    <script type="text/javascript" src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="/node_modules/qsocks/qsocks.bundle.js"></script>
+    <script type="text/javascript" src="/resources/playground-js-api.js"></script>
+    <script type="text/javascript" src="/resources/sense-search.js"></script>
+    <script type="text/javascript">
+      var apiKey = "api key goes here";
+      Playground.Authenticate("ticket", apiKey).then(function(data){
+        console.log(data);
+        var config = {
+          host: "10.211.55.7",
+          prefix: "/playground",
+          isSecure: true,
+          rejectUnauthorized: false,
+          appname: "082d8524-3673-43fc-9c15-6e27c05a2cc1",
+          ticket: data.Ticket
+
+        }
+
+        qsocks.Connect(config).then(function(global){
+          global.openDoc(config.appname).then(function(app){
+            console.log(app);
+            senseSearch.connectWithQSocks(app);
+            var resultOptions = {
+               "fields":[
+                  {
+                    "dimension": "title",
+                    "suppressNull": true
+                  },
+                  {
+                    "dimension": "username",
+                    "suppressNull": false
+                  },
+                  {
+                    "dimension": "tags",
+                    "suppressNull": false
+                  },
+                  {
+                    "dimension": "short_description",
+                    "suppressNull": false
+                  },
+                  {
+                    "measure": "sum({$<approved={'true'}>}points)",
+                    "label": "points",
+                    "sortType" : "qSortByNumeric",
+                    "order" : -1
+                  }
+               ],
+               "sortOptions": {
+                 "title": {
+                    "name": "A-Z",
+                    "order": 1,
+                    "field": "title",
+                    "sortType": "qSortByAscii"
+                  }
+               },
+               "defaultSort": "title"
+            }
+            var inputOptions = {
+              "searchFields": ["SearchField"],
+              "suggestFields": ["title","username","tags","category","product","short_description"]
+            }
+            senseSearch.inputs["myInput"].attach(inputOptions);
+            senseSearch.results["myResults"].attach(resultOptions);
+          });
+        }, function(err){
+          console.log(err);
+        });
+      }, function(err){
+        console.log(err);
+      });
+    </script>
+  </body>
+</html>
